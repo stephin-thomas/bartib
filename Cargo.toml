@@ -36,14 +36,14 @@ targets = [
 pr-run-mode = "upload"
 
 [dependencies]
-anyhow = "1.0.0"
-chrono = "0.4.0"
-clap = "2.0.0"
-nu-ansi-term = "0.46.0"
-term_size = "0.3.0"
-textwrap = "0.16.0"
-thiserror = "1.0.0"
-wildmatch = "2.3.0"
+anyhow = "1.0.98"
+chrono = "0.4.41"
+clap = { version = "4.5.41", features = ["derive", "env"] }
+nu-ansi-term = "0.50.1"
+term_size = "0.3.2"
+textwrap = "0.16.2"
+thiserror = "2.0.12"
+wildmatch = "2.4.0"
 
 [features]
 # Timestamps are recorded with second precision instead of the default minute precision
