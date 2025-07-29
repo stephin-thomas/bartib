@@ -1,4 +1,4 @@
-use chrono::NaiveDate;
+use chrono::{Datelike, Duration, Local, NaiveDate};
 use std::collections::HashSet;
 use wildmatch::WildMatch;
 
@@ -13,6 +13,62 @@ pub struct ActivityFilter<'a> {
     pub to_date: Option<NaiveDate>,
     pub date: Option<NaiveDate>,
     pub project: Option<&'a str>,
+}
+
+impl<'a> ActivityFilter<'a> {
+    pub fn new(
+        number_of_activities: Option<usize>,
+        from_date: Option<NaiveDate>,
+        to_date: Option<NaiveDate>,
+        date: Option<NaiveDate>,
+        project: Option<&'a str>,
+        today: bool,
+        yesterday: bool,
+        current_week: bool,
+        last_week: bool,
+    ) -> Self {
+        let mut filter = Self {
+            number_of_activities,
+            from_date,
+            to_date,
+            date,
+            project,
+        };
+
+        let now = Local::now().naive_local().date();
+        if today {
+            filter.date = Some(now);
+        }
+
+        if yesterday {
+            filter.date = Some(now - Duration::days(1));
+        }
+
+        if current_week {
+            filter.from_date =
+                Some(now - Duration::days(i64::from(now.weekday().num_days_from_monday())));
+            filter.to_date = Some(
+                now - Duration::days(i64::from(now.weekday().num_days_from_monday()))
+                    + Duration::days(6),
+            );
+        }
+
+        if last_week {
+            filter.from_date = Some(
+                now
+                    - Duration::days(i64::from(now.weekday().num_days_from_monday()))
+                    - Duration::weeks(1),
+            );
+            filter.to_date = Some(
+                now
+                    - Duration::days(i64::from(now.weekday().num_days_from_monday()))
+                    - Duration::weeks(1)
+                    + Duration::days(6),
+            )
+        }
+
+        filter
+    }
 }
 
 #[must_use]

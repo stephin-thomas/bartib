@@ -10,8 +10,13 @@ use bartib::data::processor;
 use nu_ansi_term::enable_ansi_support;
 
 #[derive(Parser)]
-#[command(author, version, about = "A simple timetracker", long_about = "To get help for a specific subcommand, run `bartib [SUBCOMMAND] --help`.
-To get started, view the `start` help with `bartib start --help`")]
+#[command(
+    author,
+    version,
+    about = "A simple timetracker",
+    long_about = "To get help for a specific subcommand, run `bartib [SUBCOMMAND] --help`.
+To get started, view the `start` help with `bartib start --help`"
+)]
 #[command(propagate_version = true)]
 struct Cli {
     #[command(subcommand)]
@@ -198,12 +203,7 @@ fn run_subcommand(cli: Cli) -> Result<()> {
         } => {
             let time = time.map(|t| Local::now().date_naive().and_time(t));
 
-            bartib::controller::manipulation::start(
-                file_name,
-                &project,
-                &description,
-                time,
-            )
+            bartib::controller::manipulation::start(file_name, &project, &description, time)
         }
         Commands::Change {
             project,
@@ -255,14 +255,17 @@ fn run_subcommand(cli: Cli) -> Result<()> {
             no_grouping,
             number,
         } => {
-            let mut filter = ActivityFilter {
-                number_of_activities: number,
-                from_date: from,
-                to_date: to,
+            let filter = ActivityFilter::new(
+                number,
+                from,
+                to,
                 date,
-                project: project.as_deref(),
-            };
-            apply_date_presets(&mut filter, today, yesterday, current_week, last_week);
+                project.as_deref(),
+                today,
+                yesterday,
+                current_week,
+                last_week,
+            );
             let processors = create_processors(round);
             let do_group_activities = !no_grouping && filter.date.is_none();
             bartib::controller::list::list(file_name, filter, do_group_activities, processors)
@@ -278,14 +281,17 @@ fn run_subcommand(cli: Cli) -> Result<()> {
             round,
             project,
         } => {
-            let mut filter = ActivityFilter {
-                number_of_activities: None,
-                from_date: from,
-                to_date: to,
+                        let filter = ActivityFilter::new(
+                None,
+                from,
+                to,
                 date,
-                project: project.as_deref(),
-            };
-            apply_date_presets(&mut filter, today, yesterday, current_week, last_week);
+                project.as_deref(),
+                today,
+                yesterday,
+                current_week,
+                last_week,
+            );
             let processors = create_processors(round);
             bartib::controller::report::show_report(file_name, filter, processors)
         }
@@ -360,13 +366,11 @@ fn apply_date_presets(
 
     if last_week {
         filter.from_date = Some(
-            now
-                - Duration::days(i64::from(now.weekday().num_days_from_monday()))
+            now - Duration::days(i64::from(now.weekday().num_days_from_monday()))
                 - Duration::weeks(1),
         );
         filter.to_date = Some(
-            now
-                - Duration::days(i64::from(now.weekday().num_days_from_monday()))
+            now - Duration::days(i64::from(now.weekday().num_days_from_monday()))
                 - Duration::weeks(1)
                 + Duration::days(6),
         )
@@ -383,10 +387,14 @@ fn parse_time(time_string: &str) -> Result<NaiveTime, String> {
 
 fn parse_duration(duration_string: &str) -> Result<Duration, String> {
     let (number_string, duration_unit) = duration_string.split_at(duration_string.len() - 1);
-    let number: i64 = number_string.parse().map_err(|e: std::num::ParseIntError| e.to_string())?;
+    let number: i64 = number_string
+        .parse()
+        .map_err(|e: std::num::ParseIntError| e.to_string())?;
     match duration_unit {
         "m" => Ok(Duration::minutes(number)),
         "h" => Ok(Duration::hours(number)),
-        _ => Err(format!("invalid duration unit '{duration_unit}', expected 'm' or 'h'")),
+        _ => Err(format!(
+            "invalid duration unit '{duration_unit}', expected 'm' or 'h'"
+        )),
     }
 }
