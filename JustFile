@@ -1,0 +1,6 @@
+install:
+	cargo install --path .
+build:
+	cargo build --release
+enable_sec_precision:
+	cargo build --features=second-precision --release
