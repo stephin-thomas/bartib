@@ -259,7 +259,7 @@ fn run_subcommand(cli: Cli) -> Result<()> {
                 number_of_activities: number,
                 from_date: from,
                 to_date: to,
-                date: date,
+                date,
                 project: project.as_deref(),
             };
             apply_date_presets(&mut filter, today, yesterday, current_week, last_week);
@@ -282,7 +282,7 @@ fn run_subcommand(cli: Cli) -> Result<()> {
                 number_of_activities: None,
                 from_date: from,
                 to_date: to,
-                date: date,
+                date,
                 project: project.as_deref(),
             };
             apply_date_presets(&mut filter, today, yesterday, current_week, last_week);
@@ -387,6 +387,6 @@ fn parse_duration(duration_string: &str) -> Result<Duration, String> {
     match duration_unit {
         "m" => Ok(Duration::minutes(number)),
         "h" => Ok(Duration::hours(number)),
-        _ => Err(format!("invalid duration unit '{}', expected 'm' or 'h'", duration_unit)),
+        _ => Err(format!("invalid duration unit '{duration_unit}', expected 'm' or 'h'")),
     }
 }
