@@ -15,6 +15,13 @@ pub struct ActivityFilter<'a> {
     pub project: Option<&'a str>,
 }
 
+pub struct DatePresetArgs {
+    pub today: bool,
+    pub yesterday: bool,
+    pub current_week: bool,
+    pub last_week: bool,
+}
+
 impl<'a> ActivityFilter<'a> {
     pub fn new(
         number_of_activities: Option<usize>,
@@ -22,10 +29,7 @@ impl<'a> ActivityFilter<'a> {
         to_date: Option<NaiveDate>,
         date: Option<NaiveDate>,
         project: Option<&'a str>,
-        today: bool,
-        yesterday: bool,
-        current_week: bool,
-        last_week: bool,
+        date_presets: DatePresetArgs,
     ) -> Self {
         let mut filter = Self {
             number_of_activities,
@@ -36,15 +40,15 @@ impl<'a> ActivityFilter<'a> {
         };
 
         let now = Local::now().naive_local().date();
-        if today {
+        if date_presets.today {
             filter.date = Some(now);
         }
 
-        if yesterday {
+        if date_presets.yesterday {
             filter.date = Some(now - Duration::days(1));
         }
 
-        if current_week {
+        if date_presets.current_week {
             filter.from_date =
                 Some(now - Duration::days(i64::from(now.weekday().num_days_from_monday())));
             filter.to_date = Some(
@@ -53,7 +57,7 @@ impl<'a> ActivityFilter<'a> {
             );
         }
 
-        if last_week {
+        if date_presets.last_week {
             filter.from_date = Some(
                 now
                     - Duration::days(i64::from(now.weekday().num_days_from_monday()))

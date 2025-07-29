@@ -3,7 +3,7 @@ use bartib::view::status::StatusReport;
 use chrono::{Datelike, Duration, Local, NaiveDate, NaiveTime};
 use clap::Parser;
 
-use bartib::data::getter::ActivityFilter;
+use bartib::data::getter::{ActivityFilter, DatePresetArgs};
 use bartib::data::processor;
 
 #[cfg(windows)]
@@ -255,17 +255,14 @@ fn run_subcommand(cli: Cli) -> Result<()> {
             no_grouping,
             number,
         } => {
-            let filter = ActivityFilter::new(
-                number,
-                from,
-                to,
-                date,
-                project.as_deref(),
+            let date_presets = DatePresetArgs {
                 today,
                 yesterday,
                 current_week,
                 last_week,
-            );
+            };
+            let filter =
+                ActivityFilter::new(number, from, to, date, project.as_deref(), date_presets);
             let processors = create_processors(round);
             let do_group_activities = !no_grouping && filter.date.is_none();
             bartib::controller::list::list(file_name, filter, do_group_activities, processors)
@@ -281,17 +278,14 @@ fn run_subcommand(cli: Cli) -> Result<()> {
             round,
             project,
         } => {
-                        let filter = ActivityFilter::new(
-                None,
-                from,
-                to,
-                date,
-                project.as_deref(),
+            let date_presets = DatePresetArgs {
                 today,
                 yesterday,
                 current_week,
                 last_week,
-            );
+            };
+            let filter =
+                ActivityFilter::new(None, from, to, date, project.as_deref(), date_presets);
             let processors = create_processors(round);
             bartib::controller::report::show_report(file_name, filter, processors)
         }
@@ -339,43 +333,43 @@ fn create_status_writer() -> Box<dyn processor::StatusReportWriter> {
     Box::new(result)
 }
 
-fn apply_date_presets(
-    filter: &mut ActivityFilter,
-    today: bool,
-    yesterday: bool,
-    current_week: bool,
-    last_week: bool,
-) {
-    let now = Local::now().naive_local().date();
-    if today {
-        filter.date = Some(now);
-    }
+// fn apply_date_presets(
+//     filter: &mut ActivityFilter,
+//     today: bool,
+//     yesterday: bool,
+//     current_week: bool,
+//     last_week: bool,
+// ) {
+//     let now = Local::now().naive_local().date();
+//     if today {
+//         filter.date = Some(now);
+//     }
 
-    if yesterday {
-        filter.date = Some(now - Duration::days(1));
-    }
+//     if yesterday {
+//         filter.date = Some(now - Duration::days(1));
+//     }
 
-    if current_week {
-        filter.from_date =
-            Some(now - Duration::days(i64::from(now.weekday().num_days_from_monday())));
-        filter.to_date = Some(
-            now - Duration::days(i64::from(now.weekday().num_days_from_monday()))
-                + Duration::days(6),
-        );
-    }
+//     if current_week {
+//         filter.from_date =
+//             Some(now - Duration::days(i64::from(now.weekday().num_days_from_monday())));
+//         filter.to_date = Some(
+//             now - Duration::days(i64::from(now.weekday().num_days_from_monday()))
+//                 + Duration::days(6),
+//         );
+//     }
 
-    if last_week {
-        filter.from_date = Some(
-            now - Duration::days(i64::from(now.weekday().num_days_from_monday()))
-                - Duration::weeks(1),
-        );
-        filter.to_date = Some(
-            now - Duration::days(i64::from(now.weekday().num_days_from_monday()))
-                - Duration::weeks(1)
-                + Duration::days(6),
-        )
-    }
-}
+//     if last_week {
+//         filter.from_date = Some(
+//             now - Duration::days(i64::from(now.weekday().num_days_from_monday()))
+//                 - Duration::weeks(1),
+//         );
+//         filter.to_date = Some(
+//             now - Duration::days(i64::from(now.weekday().num_days_from_monday()))
+//                 - Duration::weeks(1)
+//                 + Duration::days(6),
+//         )
+//     }
+// }
 
 fn parse_date(date_string: &str) -> Result<NaiveDate, String> {
     NaiveDate::parse_from_str(date_string, bartib::conf::FORMAT_DATE).map_err(|e| e.to_string())
