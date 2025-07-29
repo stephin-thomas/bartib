@@ -1,6 +1,6 @@
 use anyhow::Result;
 use bartib::view::status::StatusReport;
-use chrono::{Datelike, Duration, Local, NaiveDate, NaiveTime};
+use chrono::{Duration, Local, NaiveDate, NaiveTime};
 use clap::Parser;
 
 use bartib::data::getter::{ActivityFilter, DatePresetArgs};
